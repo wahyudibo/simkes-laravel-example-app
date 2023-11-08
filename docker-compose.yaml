@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.php
+    container_name: app
+    env_file:
+      - .env
+    volumes:
+        - ${PWD:-./}:/var/www/html
+
+  nginx:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.nginx
+    depends_on:
+        - app
+        - mysql
+    container_name: nginx
+    ports:
+      - "8080:80"
+    volumes:
+        - ./docker/default.conf:/etc/nginx/nginx.conf
+        - ${PWD:-./}:/var/www/html
+
+  mysql:
+      image: mysql:8.0.27
+      container_name: mysql
+      ports:
+          - 3306:3306
+      volumes:
+          - ./mysql:/var/lib/mysql
+      environment:
+          MYSQL_DATABASE: laravel
+          MYSQL_ROOT_PASSWORD: secret
